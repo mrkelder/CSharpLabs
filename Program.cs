@@ -5,9 +5,39 @@ namespace ConsoleApp1
 
     class Car
     {
-        public readonly string numberPlate = "DC2412R";
-        private int gear = 1;
-        private int fuelLeft = 15;
+        private string numberPlate;
+        private int gear;
+        private int fuelLeft;
+
+        ~Car () {
+            Console.WriteLine("Автомобиль с номером {0} уничтожен", this.numberPlate);
+        }
+
+        public Car ()
+        {
+            this.numberPlate = "AH3244CI";
+            this.gear = 1;
+            this.fuelLeft = 15;
+        }
+
+        public Car (int fuelLeft): this ()
+        {
+            this.fuelLeft = fuelLeft;
+        }
+
+        public Car (string numberPlate, int gear)
+        {
+            this.numberPlate = numberPlate;
+            this.gear = gear;
+            this.fuelLeft = 15;
+        }
+
+        public Car(int gear, int fuelLeft)
+        {
+            this.numberPlate = "AH3244CI";
+            this.gear = gear;
+            this.fuelLeft = fuelLeft;
+        }
 
         public void changeGear (char gear)
         {
@@ -75,20 +105,17 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             Car bmw = new Car();
-            bmw.printStats();
+            Car mercedes = new Car(10);
+            Car audi = new Car(2, 20);
+            Car skoda = new Car("ASAProcky", 3);
 
-            bmw.FuelLeft = "2";
-            bmw.changeGear(5);
-            bmw.printStats();
+            Car[] cars = { bmw, mercedes, audi, skoda };
 
-            bmw.driveOneMile();
-            bmw.changeGear('R');
-            bmw.printStats();
+            for(int i = 0; i < cars.Length; i++)
+            {
+                cars[i].printStats();
+            }
 
-
-            bmw.driveOneMile();
-            bmw.changeGear(1);
-            bmw.printStats();
         }
     }
 }
