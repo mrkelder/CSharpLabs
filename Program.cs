@@ -1,102 +1,131 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace ConsoleApp1
 {
 
-    class MyMath
+    class Car
     {
-        public virtual void square(int num)
+        private string numberPlate;
+        private int gear;
+        private int fuelLeft;
+
+        ~Car()
         {
-            Console.WriteLine("From MyMath");
-            Console.WriteLine(Math.Pow(num, 2));
+            Debug.WriteLine("Автомобиль с номером {0} уничтожен", this.numberPlate);
+        }
+
+        public Car()
+        {
+            this.numberPlate = "DF12342";
+            this.gear = 1;
+            this.fuelLeft = 15;
+            Console.WriteLine("Car()");
             Console.WriteLine();
-
         }
 
-        public void add20ToInitialNumber(out int num)
+        public Car(int fuelLeft) : this()
         {
-            num = 20;
+            this.fuelLeft = fuelLeft;
+            Console.WriteLine("Car(int fuelLeft) : this()");
+            Console.WriteLine();
         }
 
-        public void add20ToInitialNumber(ref int num, params int[] nums)
+        public Car(string numberPlate, int gear)
         {
-            bool fromMinToMax = num % 2 == 0;
-            int[] newArray = nums;
+            this.numberPlate = numberPlate;
+            this.gear = gear;
+            this.fuelLeft = 15;
+            Console.WriteLine("Car(string numberPlate, int gear)");
+            Console.WriteLine();
+        }
 
-            for (var a = 0; a < newArray.Length - 1; a++)
+        public Car(int gear, int fuelLeft)
+        {
+            this.numberPlate = "DF12342";
+            this.gear = gear;
+            this.fuelLeft = fuelLeft;
+            Console.WriteLine("Car(int gear, int fuelLeft)");
+            Console.WriteLine();
+        }
+
+        public void changeGear(char gear)
+        {
+            if (gear == 'r' || gear == 'R') this.gear = -1;
+        }
+
+        public void changeGear(int gear)
+        {
+            if (gear >= 0 && gear <= 5) this.gear = Convert.ToChar(gear);
+        }
+
+        public void driveOneMile()
+        {
+            if (this.fuelLeft > 0) this.fuelLeft--;
+            else Console.WriteLine("Бак пуст");
+        }
+
+        public void printStats()
+        {
+            this.printCurrentGear();
+            this.printFuelStatus();
+            this.printNumberPlate();
+            Console.WriteLine();
+        }
+
+        private void printNumberPlate()
+        {
+            Console.WriteLine("Номер авто: " + this.numberPlate);
+        }
+
+        private void printFuelStatus()
+        {
+            if (this.fuelLeft > 0) Console.WriteLine("Осталось " + this.fuelLeft + " единиц топлива");
+            else Console.WriteLine("Бак пуст");
+        }
+        private void printCurrentGear()
+        {
+            if (this.gear == -1) Console.WriteLine("Задняя передача");
+            else Console.WriteLine("Данная передача: " + this.gear);
+        }
+
+        public string FuelLeft
+        {
+            get
             {
-                for (var b = 0; b < newArray.Length - a; b++)
+                return "Осталось " + this.fuelLeft + " литров топлива";
+            }
+            set
+            {
+                if (Convert.ToInt32(value) > 0 && Convert.ToInt32(value) < 39)
                 {
-                    if (fromMinToMax)
-                    {
-                        if (newArray[a + b] < newArray[a])
-                        {
-                            int temp = newArray[a + b];
-                            newArray[a + b] = newArray[a];
-                            newArray[a] = temp;
-                        }
-                    }
-
-                    else
-                    {
-                        if (newArray[a + b] > newArray[a])
-                        {
-                            int temp = newArray[a + b];
-                            newArray[a + b] = newArray[a];
-                            newArray[a] = temp;
-                        }
-                    }
+                    this.fuelLeft = Convert.ToInt32(value);
+                }
+                else
+                {
+                    this.fuelLeft = 0;
                 }
             }
-
-            Console.Write("[");
-
-            foreach (var i in newArray)
-            {
-                Console.Write(" {0} ", i);
-            }
-            Console.WriteLine("]");
         }
-    }
 
-    class MyMath2 : MyMath
-    {
-        public override void square(int num)
-        {
-            Console.WriteLine("From MyMath2");
-            Console.WriteLine(Math.Pow(num, 3));
-            base.square(num);
-        }
-    }
-
-    class MyMath3 : MyMath2
-    {
-        public override void square(int num)
-        {
-            Console.WriteLine("From MyMath3");
-            Console.WriteLine(Math.Pow(num, 4));
-            base.square(num);
-        }
     }
 
     class Program
     {
         static void Main(string[] args)
         {
+            Car bmw = new Car();
+            Car mercedes = new Car(10);
+            Car audi = new Car(2, 20);
+            Car skoda = new Car("ASAProcky", 3);
 
-            MyMath ex = new MyMath();
-            MyMath2 ex2 = new MyMath2();
-            MyMath3 ex3 = new MyMath3();
+            Car[] cars = { bmw, mercedes, audi, skoda };
 
-            int num;
+            for (int i = 0; i < cars.Length; i++)
+            {
+                cars[i].printStats();
+            }
 
-
-            ex.square(2);
-            ex.add20ToInitialNumber(out num);
-            Console.WriteLine(num);
-            ex.add20ToInitialNumber(ref num, 1, 2, 3, 1, 5, 8, 7, 1);
-            ex2.square(2);
-            ex3.square(2);
         }
     }
 }
