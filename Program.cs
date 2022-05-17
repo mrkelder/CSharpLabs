@@ -3,105 +3,100 @@
 namespace ConsoleApp1
 {
 
-    public interface Descriminant
+    class MyMath
     {
-        public float A { get; set; }
-        public float B { get; set; }
-        public float C { get; set; }
-        public float findDescrimenant();
-    }
-
-    public interface SquareRoots
-    {
-        public float A { get; set; }
-        public float B { get; set; }
-        public float C { get; set; }
-        public void printSquareRoots();
-    }
-
-    class DescrimenantFinder : Descriminant
-    {
-        private float a;
-        private float b;
-        private float c;
-
-        public virtual float A
+        public virtual void square(int num)
         {
-            set { a = value; }
-            get { return a; }
+            Console.WriteLine("From MyMath");
+            Console.WriteLine(Math.Pow(num, 2));
+            Console.WriteLine();
+
         }
 
-        public virtual float B
+        public void add20ToInitialNumber(out int num)
         {
-            set { b = value; }
-            get { return b; }
+            num = 20;
         }
 
-        public virtual float C
+        public void add20ToInitialNumber(ref int num, params int[] nums)
         {
-            set { c = value; }
-            get { return c; }
-        }
+            bool fromMinToMax = num % 2 == 0;
+            int[] newArray = nums;
 
-        public float findDescrimenant()
-        {
-            return MathF.Pow(b, 2) - 4 * a * c;
-        }
-    }
-
-    class SquareRootsFinder : DescrimenantFinder, SquareRoots
-    {
-        private float a;
-        private float b;
-        private float c;
-
-        public override float A
-        {
-            set { base.A = value; a = value; }
-            get { return a; }
-        }
-
-        public override float B
-        {
-            set { base.B = value; b = value; }
-            get { return b; }
-        }
-        public override float C
-        {
-            set { base.C = value; c = value; }
-            get { return c; }
-        }
-
-        public void printSquareRoots()
-        {
-            float D = this.findDescrimenant();
-
-            if (D > 0)
+            for (var a = 0; a < newArray.Length - 1; a++)
             {
-                Console.WriteLine("x1 = {0}", (-b + Math.Sqrt(D)) / (2 * a));
-                Console.WriteLine("x2 = {0}", (-b - Math.Sqrt(D)) / (2 * a));
-            }
-            else if (D == 0)
-                Console.WriteLine("x = {0}", (-b + Math.Sqrt(D)) / (2 * a));
-            else
-                Console.WriteLine("Корней нет");
+                for (var b = 0; b < newArray.Length - a; b++)
+                {
+                    if (fromMinToMax)
+                    {
+                        if (newArray[a + b] < newArray[a])
+                        {
+                            int temp = newArray[a + b];
+                            newArray[a + b] = newArray[a];
+                            newArray[a] = temp;
+                        }
+                    }
 
+                    else
+                    {
+                        if (newArray[a + b] > newArray[a])
+                        {
+                            int temp = newArray[a + b];
+                            newArray[a + b] = newArray[a];
+                            newArray[a] = temp;
+                        }
+                    }
+                }
+            }
+
+            Console.Write("[");
+
+            foreach (var i in newArray)
+            {
+                Console.Write(" {0} ", i);
+            }
+            Console.WriteLine("]");
         }
     }
 
+    class MyMath2 : MyMath
+    {
+        public override void square(int num)
+        {
+            Console.WriteLine("From MyMath2");
+            Console.WriteLine(Math.Pow(num, 3));
+            base.square(num);
+        }
+    }
+
+    class MyMath3 : MyMath2
+    {
+        public override void square(int num)
+        {
+            Console.WriteLine("From MyMath3");
+            Console.WriteLine(Math.Pow(num, 4));
+            base.square(num);
+        }
+    }
 
     class Program
     {
         static void Main(string[] args)
         {
-            // 3 2 -1
-            SquareRootsFinder srf = new SquareRootsFinder();
-            
-            srf.A = Convert.ToInt32(Console.ReadLine());
-            srf.B = Convert.ToInt32(Console.ReadLine());
-            srf.C = Convert.ToInt32(Console.ReadLine());
 
-            srf.printSquareRoots();
+            MyMath ex = new MyMath();
+            MyMath2 ex2 = new MyMath2();
+            MyMath3 ex3 = new MyMath3();
+
+            int num;
+
+
+            ex.square(2);
+            ex.add20ToInitialNumber(out num);
+            Console.WriteLine(num);
+            ex.add20ToInitialNumber(ref num, 1, 2, 3, 1, 5, 8, 7, 1);
+            ex2.square(2);
+            ex3.square(2);
         }
     }
 }
