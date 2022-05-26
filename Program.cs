@@ -1,251 +1,346 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml.Serialization;
+using System.Linq;
+using System.Text;
+using System.Threading;
 
-/*
-Создать класс Element, содержащий следующие члены:
--свойство Name String типа (RW)
--свойство Index int типа(RW)
--метод PrintName() выводящий Name и Index в консоль
-Создать пользовательскую коллекцию Elements (1), добавить в коллекцию более 10 элементов, проверить работу коллекции по следующему сценарию.
-1. вывести коллекцию в консоль;
-2.вставить новый элемент в коллекцию на любое место, кроме первого и последнего;
-3.вывести коллекцию в консоль;
-4.выполнить сериализацию коллекции(2);
-5.удалить любой элемент коллекции;
-6.скопировать коллекцию в массив;
-7.вывести массив в консоль;
-8.очистить коллекцию;
-9.отобразить количество элементов коллекции и вывести коллекцию в консоль;
-10.выполнить десериализацию коллекции из потока (файл);
-11.вывести коллекцию в консоль.
-(1) реализует интерфейсы IEnumerable, IEnumerator
-(2) формат сериализации по варианту XML
-*/
-
-namespace System.Collections
+namespace CourseWork
 {
-    [Serializable]
+    public delegate void CarDelegate();
+    public delegate void CarDelegateWithString(string destination);
+    public delegate void CarDelegateWithIntAndString(int estimatedTime, string destination);
+    public delegate void CarDelegateWithInt(int price);
 
-    public class Element
+    //public delegate void MyDelegate(DateTime date, byte WorkTime);
+
+    interface IA
     {
-        public string Name { get; set; }
-        public int Index { get; set; }
+        public event CarDelegate EventFromAToC;
+        public event CarDelegateWithString EventFromAToD;
+        public event CarDelegateWithInt EventFromDToB;
+        public event CarDelegate EventFromBToC;
 
-        public Element() { }
-
-        public Element(string name, int index)
-        {
-            Name = name;
-            Index = index;
-        }
-
-        public void PrintName()
-        {
-            Console.WriteLine("Имя: {0,20:0}, индекс: {1}", Name, Index);
-        }
-
-        public new string ToString()
-        {
-            return Name + " " + Index;
-        }
+        public void requestIgnition();
+        public void requestRideTo(string destination);
+        public void engineIgnitionResponse();
+        public void proxyFromDToB(int price);
+        public void proxyFromBToC();
     }
 
-    class Elements : IEnumerable, IEnumerator
+    interface IB
     {
-        int pos = -1;
-        int currentPos = 0;
-        Element[] elements = new Element[50];
+        public event CarDelegate EventFromBToC;
 
-        public Element this[int index]
-        {
-            get { return elements[index]; }
-            set { elements[index] = value; }
-        }
+        public void setPrice(int totalPrice);
+        public void requestPayment();
+    }
 
-        public void PrintCollection()
-        {
-            bool flag = true;
-            foreach (var i in elements)
-            {
-                if (i != null)
-                {
-                    flag = false;
-                    i.PrintName();
-                }
-            }
-            if (flag)
-            {
-                Console.WriteLine("Коллекция пуста");
-            }
-            Console.WriteLine();
-        }
+    interface IC
+    {
+        public event CarDelegate EventFromCToA;
 
-        public void Push(Element element)
-        {
-            if (currentPos < elements.Length)
-            {
-                elements[currentPos] = element;
-                currentPos++;
-            }
-            else Console.WriteLine("Array is full, please clear it");
-        }
+        public void setIgnitionRequestPending();
+        public void igniteEngine();
+        public void setRidePaid();
+        public void stopEngine();
+    }
 
-        public void Insert(int position, Element element)
-        {
-            if (position > 0 && position < elements.Length - 1)
-            {
-                Element[] copiedElements = new Element[50];
+    interface ID
+    {
+        public event CarDelegateWithIntAndString EventFromDToE;
+        public event CarDelegateWithInt EventFromDToB;
+  
+        public void setDestination(string destination);
+        public void lookForPowerStation();
+        public void navigateToClientDestination();
+        public void resetNavigation();
+        public void finishRide(string destination);
+    }
 
-                for (int i = 0; i < elements.Length; i++)
-                {
-                    copiedElements[i] = elements[i];
-                }
+    interface IE
+    {
+        // система движения автомобиля
+        public event CarDelegateWithString EventFromEToD;
 
-                for (int i = position; i < elements.Length - 1; i++)
-                {
-                    if (elements[i] != null)
-                    {
-                        elements[i + 1] = copiedElements[i];
-                    }
-                }
-                elements[position] = element;
-            }
-        }
-
-        public void PrintQuantityOfElements()
-        {
-            int counter = 0;
-            foreach (Element i in elements)
-            {
-                if (i != null) counter++;
-            }
-            Console.WriteLine("Количество элементов в коллекции: {0}", counter);
-        }
-
-        public void RemoveAt(int index)
-        {
-            if (index > 0 && index < elements.Length)
-            {
-                elements[index] = null;
-            }
-        }
-
-        public void ResetCollection()
-        {
-            elements = new Element[50];
-        }
-
-        bool IEnumerator.MoveNext()
-        {
-            if (pos < elements.Length - 1)
-            {
-                pos++;
-                return true;
-            }
-        ((IEnumerator)this).Reset();
-            return false;
-        }
-
-        void IEnumerator.Reset()
-        {
-            pos = -1;
-        }
-        object IEnumerator.Current
-        {
-            get { return elements[pos]; }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return (IEnumerator)this;
-        }
+        public void setEstimatedTime(int estimatedTime, string destination);
+        public void drive();
     }
 
 
     class Program
     {
+        public class A : IA
+        {
+            // запросы пассажира
+            public event CarDelegate EventFromAToC;
+            public event CarDelegateWithString EventFromAToD;
+            public event CarDelegateWithInt EventFromDToB;
+            public event CarDelegate EventFromBToC;
+
+            public void requestIgnition() {
+                Console.WriteLine("A \tПользователь запрашивает запуск двигателя");
+                EventFromAToC();
+            }
+
+            public void requestRideTo(string destination) {
+                Console.WriteLine("A \tПользователь запрашивает поездку до пунтка назначения \"{0}\"", destination);
+                EventFromAToD(destination);
+            }
+
+            public void engineIgnitionResponse()
+            {
+                Console.WriteLine("\nC-A \tДвигатель запущен");
+            }
+
+            public void proxyFromDToB(int price)
+            {
+                EventFromDToB(price);
+            }
+
+            public void proxyFromBToC()
+            {
+                EventFromBToC();
+            }
+        }
+
+        public class B: IB
+        {
+            // система оплаты
+            public event CarDelegate EventFromBToC;
+            public int price = 0;
+
+            public void setPrice(int totalPrice)
+            {
+                Console.WriteLine("D-B \tУстанавливаем цену...");
+                Thread.Sleep(1000);
+                price = totalPrice;
+            }
+
+            public void requestPayment()
+            {
+                Console.WriteLine("B \tСтоимость поездки {0}$", price);
+                price = 0;
+                EventFromBToC();
+            }
+        }
+
+        public class C: IC
+        {
+            // система управления электродвигателем
+            public event CarDelegate EventFromCToA;
+            private bool isIgnitionRequested = false;
+            private bool isRidePaid = false;
+
+            public void setIgnitionRequestPending()
+            {
+                Console.WriteLine("A-C \tЗапрос запуска двигателя сохранен");
+                isIgnitionRequested = true;
+            }
+
+            public void igniteEngine()
+            {
+                if(isIgnitionRequested)
+                {
+                    Random rnd = new Random();
+                    Console.Write("C \tДвигатель запускается");
+
+                    for(int i = rnd.Next(3, 8); i > 0; i--)
+                    {
+                        Thread.Sleep(500);
+                        Console.Write(".");
+                    }
+
+                    isIgnitionRequested = false;
+                    EventFromCToA();
+                }
+            }
+
+            public void setRidePaid()
+            {
+                Console.WriteLine("B-C \tУстонавливаем флаг того, что поездка оплачена");
+                isRidePaid = true;
+            }
+
+            public void stopEngine()
+            {
+                if(isRidePaid)
+                {
+                    Console.WriteLine("C \tЗаглушаем двигатель");
+                    isRidePaid = false;
+                }
+            }
+        }
+
+        public class D: ID
+        {
+            // система навигации для автопилота
+            public event CarDelegateWithIntAndString EventFromDToE;
+            public event CarDelegateWithInt EventFromDToB;
+            private string userDestination = "";
+            private int priceToStation = 0;
+            private int priceToDestination = 0;
+
+            private const int PRICE_PER_TIME = 15;
+
+            public void setDestination(string destination)
+            {
+                Console.WriteLine("A-D \tПункт назначения пользователя записан в навигатор");
+                userDestination = destination;
+            }
+
+            public void lookForPowerStation()
+            {
+                Random rnd = new Random();
+                Console.Write("D \tНачат поиск станции заправки");
+
+                for (int i = rnd.Next(3, 8); i > 0; i--)
+                {
+                    Thread.Sleep(500);
+                    Console.Write(".");
+                }
+
+                int estimatedTime = rnd.Next(2, 5);
+                priceToStation = estimatedTime * PRICE_PER_TIME;
+                Console.WriteLine("\n\tЗаправка найдена. Время до прибытия: {0} условных единиц", estimatedTime);
+                EventFromDToE(estimatedTime, "Заправка");
+            }
+
+            public void navigateToClientDestination()
+            {
+                Random rnd = new Random();
+                Console.Write("D \tНачат поиск точки назначения \"{0}\"", userDestination);
+
+                for (int i = rnd.Next(3, 8); i > 0; i--)
+                {
+                    Thread.Sleep(500);
+                    Console.Write(".");
+                }
+
+                Console.WriteLine();
+
+                int estimatedTime = rnd.Next(2, 5);
+                priceToDestination = estimatedTime * PRICE_PER_TIME;
+                Console.WriteLine("\tНачинаем движение в точку назначения \"{0}\". Время: {1} условных единиц", userDestination, estimatedTime);
+                EventFromDToE(estimatedTime, userDestination);
+            }          
+
+            public void resetNavigation()
+            {
+                Console.WriteLine("D \tСбрасываем навигацию");
+                int totalPrice = priceToStation + priceToDestination;
+                userDestination = "";
+                priceToStation = 0;
+                priceToDestination = 0;
+
+                EventFromDToB(totalPrice);
+            }
+
+            public void finishRide(string destination)
+            {
+                Thread.Sleep(500);
+                Console.WriteLine("\nE-D \tПоездка до \"{0}\" завершена", destination);
+            }
+        }
+
+        public class E: IE
+        {
+            // система движения автомобиля
+            public event CarDelegateWithString EventFromEToD;
+            private int currentEstimatedTime = 0;
+            private string currentDestination = "";
+
+            public void setEstimatedTime(int estimatedTime, string destination)
+            {
+                Console.WriteLine("D-E \tСохраняем название точки назначения и кол-во времени на дорогу");
+                currentEstimatedTime = estimatedTime;
+                currentDestination = destination;
+            }
+
+            public void drive()
+            {
+                Random rnd = new Random();
+                Console.WriteLine("E \tНачинаем поездку в точку назначения \"{0}\"", currentDestination);
+                Console.Write("\tДо конца поездки осталось:");
+                for (int i = 0; i < currentEstimatedTime; i++)
+                {
+                    Thread.Sleep(1000);
+                    Console.Write(" {0}", currentEstimatedTime - i);
+                }
+
+                EventFromEToD(currentDestination);
+            }
+        }
+
         static void Main(string[] args)
         {
-            // 0. cоздание коллекции
-            Elements elements = new Elements();
-            elements.Push(new Element("Vlad", 1));
-            elements.Push(new Element("Misha", 2));
-            elements.Push(new Element("Teodor Rusvelt", 3));
-            elements.Push(new Element("Grisha", 4));
-            elements.Push(new Element("Jisha", 5));
-            elements.Push(new Element("Ilya", 6));
-            elements.Push(new Element("V", 7));
-            elements.Push(new Element("Scout", 8));
-            elements.Push(new Element("Artem", 9));
-            elements.Push(new Element("George", 10));
-            elements.Push(new Element("Funke", 11));
-            elements.Push(new Element("Heavy weapons guy", 12));
-            elements.Push(new Element("Ralsei", 13));
-            elements.Push(new Element("Jeff", 14));
-            elements[14] = new Element("MEDIC", 15);
-            // 1. вывести коллекцию в консоль
-            Console.WriteLine("================ Начальная коллекция ================");
-            elements.PrintCollection();
+            // данная абстарктная система предсатвляет собой атоматизировнное такси-автопилот
 
-            // 2. вставить новый элемент в коллекцию на любое место, кроме первого и последнего
-            elements.Insert(5, new Element("LEEEEROOOOOOOY", 16));
+            // 1. Пользователь запрашивает активацию двигателя
+            // 2. Автомобиль активируется
+            // 3. Пользователь указывает пункт назначения
+            // 4. Система навигации задает маршрут до ближайшей заправки для дозаправки
+            // 5. Система автопилота ведет машину на заправку, завершает поездку
+            // 6. Система навигации выбирает маршрут до пунтка назначения пользователя
+            // 7. Система автопилота ведет машину на заправку, завершает поездку
+            // 8. Система навигации сообщает о конце поездки
+            // 9. Происходит запрос оплаты за поездку
+            // 10. Автомобиль переходит в режим гибернации
+            // 11. Повторить все вышеперечисленное (i - 1) раз
+            
+            Random rnd = new Random();
+            A passanger = new A();
+            B payment = new B();
+            C engine = new C();
+            D navigation = new D();
+            E rideController = new E();
 
-            // 3. вывести коллекцию в консоль
-            Console.WriteLine("================ Вставили один элемент ================");
-            elements.PrintCollection();
+            int quantityOfClients = rnd.Next(1, 4);         // количество клиентков
+            List<string> destinations = new List<string>(); // коллекция пунктов назначения
 
-            // 4. выполнить сериализацию коллекции
-            List<Element> listElements = new List<Element>();
-            foreach (Element i in elements)
+            destinations.Add("Торговый центр");
+            destinations.Add("Рынок");
+            destinations.Add("Обзерватория");
+            destinations.Add("Филормония");
+            destinations.Add("Университет");
+            destinations.Add("Кафе");
+            destinations.Add("Галлерея");
+            destinations.Add("Пляж");
+            destinations.Add("Школа английского языка");
+            destinations.Add("Концертный зал");
+
+
+            passanger.EventFromAToC += engine.setIgnitionRequestPending;
+            passanger.EventFromAToD += navigation.setDestination;
+            passanger.EventFromDToB += payment.setPrice;
+            passanger.EventFromBToC += engine.setRidePaid;
+
+            payment.EventFromBToC += passanger.proxyFromBToC;
+
+            engine.EventFromCToA += passanger.engineIgnitionResponse;
+
+            navigation.EventFromDToE += rideController.setEstimatedTime;
+            navigation.EventFromDToB += passanger.proxyFromDToB;
+
+            rideController.EventFromEToD += navigation.finishRide;
+
+            Console.WriteLine("Количество клиентов: {0}", quantityOfClients);
+
+            for (int i = 1; i <= quantityOfClients; i++)
             {
-                if (i != null) listElements.Add(i);
-            }
-            XmlSerializer xml = new XmlSerializer(listElements.GetType());
-            FileStream f = new FileStream("serialization.xml", FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-            xml.Serialize(f, listElements);
-
-            // 5. удалить любой элемент коллекции
-            elements.RemoveAt(2);
-
-            // 6. скопировать коллекцию в массив
-            Element[] arrayElements = new Element[50];
-            for (int i = 0; i < 50; i++)
-            {
-                arrayElements[i] = elements[i];
+                Console.WriteLine("\nКлиент №{0}", i);
+                passanger.requestIgnition();                                                // A запрашивает C запустить двигатель
+                engine.igniteEngine();                                                      // C запускает двигатель
+                passanger.requestRideTo(destinations[rnd.Next(0, destinations.Count - 1)]); // A запрашивает поездку
+                navigation.lookForPowerStation();                                           // D прокладывает маршрут к ближайшей заправочной станции
+                rideController.drive();                                                     // E ведет машину к заправке
+                navigation.navigateToClientDestination();                                   // D прокладывает маршрут к пунтку назначения
+                rideController.drive();                                                     // E ведет машину к пункту назначения
+                navigation.resetNavigation();                                               // D сбрасывает навигацию
+                payment.requestPayment();                                                   // B запрашивает оплату
+                engine.stopEngine();                                                        // C заглушает двигатель                    
             }
 
-            // 7. вывести массив в консоль
-            Console.WriteLine("================ Массив ================");
-            foreach (Element i in arrayElements)
-            {
-                if (i != null)
-                    i.PrintName();
-            }
-            Console.WriteLine();
-
-            // 8. очистить коллекцию
-            elements.ResetCollection();
-            Console.WriteLine("================ Колекция удалена ================");
-
-            // 9. отобразить количество элементов коллекции и вывести коллекцию в консоль
-            elements.PrintQuantityOfElements();
-            elements.PrintCollection();
-
-            // 10. выполнить десериализацию коллекции из потока(файл)
-            f.Position = 0;
-            f.Seek(0, SeekOrigin.Begin);
-            listElements = (List<Element>)xml.Deserialize(f);
-            foreach (Element i in listElements)
-            {
-                elements.Push(i);
-            }
-            Console.WriteLine("================ Колекция прочитана из файла ================");
-
-            // 11. вывести коллекцию в консоль
-            elements.PrintCollection();
-
+            Console.ReadKey();  
         }
     }
 }
