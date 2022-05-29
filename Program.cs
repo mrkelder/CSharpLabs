@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-// данная абстарктная система предсатвляет собой атоматизировнное такси-автопилот
+// Данная абстарктная система предсатвляет собой атоматизировнное такси-автопилот
 
 // 1. Пользователь запрашивает активацию двигателя
 // 2. Автомобиль активируется
@@ -20,70 +20,112 @@ using System.Threading;
 
 namespace CourseWork
 {
+    // делегаты с разными параметрами
     public delegate void CarDelegate();
     public delegate void CarDelegateWithString(string destination);
     public delegate void CarDelegateWithIntAndString(int estimatedTime, string destination);
     public delegate void CarDelegateWithInt(int price);
 
+    // интерфейс запросов пассажира
     interface IA
     {
+        // список делегатов для реализации событийной модели
         public event CarDelegate EventFromAToC;
         public event CarDelegateWithString EventFromAToD;
         public event CarDelegateWithInt EventFromDToB;
+        public event CarDelegateWithIntAndString EventFromDToE;
+        public event CarDelegateWithString EventFromEToD;
 
+        // метод для запроса активации двигателя
         public void requestIgnition();
+        // метод для запроса поездки в пункт назначения
         public void requestRideTo(string destination);
+        // метод, сообщающий пользователю
+        // о том, что двигатель запущен
         public void engineIgnitionResponse();
+        // переходной метод между классами D и B
         public void proxyFromDToB(int price);
+        // переходной метод между классами D и E
+        public void proxyFromDToE(int estimatedTime, string destination);
+        // переходной метод между классами E и D
+        public void proxyFromEToD(string destination);
     }
 
+    // интерфейс системы оплаты
     interface IB
     {
+        // список делегатов для реализации событийной модели
         public event CarDelegate EventFromBToC;
         public event CarDelegate EventFromAToC;
         public event CarDelegate EventFromCToA;
 
+        // сохранение цены для оплаты
         public void setPrice(int totalPrice);
+        // запрос оплаты
         public void requestPayment();
+        // переходной метод между классами A и C
         public void proxyFromAToC();
+        // переходной метод между классами C и A
         public void proxyFromCToA();
     }
 
+    // интерфейс системы управления электродвигателем
     interface IC
     {
+        // список делегатов для реализации событийной модели
         public event CarDelegate EventFromCToA;
 
+        // установка флага того, что был отправлен
+        // запрос об активации двигателя
         public void setIgnitionRequestPending();
+        // запуск двигателя
         public void igniteEngine();
+        // установка флага того, поездка оплачена
         public void setRidePaid();
+        // остановка двигателя
         public void stopEngine();
     }
 
+    // интерфейс системы навигации
     interface ID
     {
+        // список делегатов для реализации событийной модели
         public event CarDelegateWithIntAndString EventFromDToE;
         public event CarDelegateWithInt EventFromDToB;
-  
+
+        // запись пунтка назначения в навигацию
         public void setDestination(string destination);
+        // поиск ближайшей заправочной станции
         public void lookForPowerStation();
+        // поиск ближайшего пути к пунтку назначения
         public void navigateToClientDestination();
+        // сброс навигации
         public void resetNavigation();
+        // выводит оповещение о том, что поездка завершена
         public void finishRide(string destination);
     }
 
+    // интерфейс системы движения автомобиля
     interface IE
     {
-        // система движения автомобиля
+        // список делегатов для реализации событийной модели
         public event CarDelegateWithString EventFromEToD;
 
-        public void setEstimatedTime(int estimatedTime, string destination);
+        // запись времени до прибытия и названия пункта назначения в контроллер автопилота
+        public void setEstimatedTimeAndDestination(int estimatedTime, string destination);
+        // метод запуска движения к пунтку назначения
         public void drive();
     }
 
 
     class Program
     {
-        public static class LoadingImitator {
+        // глобальный объект класса Random
+        public static Random rnd = new Random();
+
+        // класс иммитации прогресса
+        public static class LoadingImitator
+        {
             // данные константы представляют собой минимальный
             // и максимальный пороги для иммитации загрузки
             private const int MIN_PROCESS_AWAIT_CYCLES = 3; // минимальное количество итераций
@@ -92,21 +134,16 @@ namespace CourseWork
             public static void printDots()
             {
                 // метод, выводящий точки, которые иммитируют какой-либо процесс
-                Random rnd = new Random();
-
                 for (int i = rnd.Next(MIN_PROCESS_AWAIT_CYCLES, MAX_PROCESS_AWAIT_CYCLES); i > 0; i--)
                 {
                     Thread.Sleep(500);
                     Console.Write(".");
                 }
             }
-
         }
 
-
         public class A : IA
-        {
-            // запросы пассажира
+        {            
             public event CarDelegate EventFromAToC;
             public event CarDelegateWithString EventFromAToD;
             public event CarDelegateWithInt EventFromDToB;                       
@@ -145,8 +182,7 @@ namespace CourseWork
         }
 
         public class B: IB
-        {
-            // система оплаты
+        {            
             public event CarDelegate EventFromBToC;
             public event CarDelegate EventFromAToC;
             public event CarDelegate EventFromCToA;
@@ -178,8 +214,7 @@ namespace CourseWork
         }
 
         public class C: IC
-        {
-            // система управления электродвигателем
+        {            
             public event CarDelegate EventFromCToA;
             private bool isIgnitionRequested = false;
             private bool isRidePaid = false;
@@ -194,7 +229,6 @@ namespace CourseWork
             {
                 if(isIgnitionRequested)
                 {
-                    Random rnd = new Random();
                     Console.Write("C \tДвигатель запускается");
 
                     LoadingImitator.printDots();
@@ -221,8 +255,7 @@ namespace CourseWork
         }
 
         public class D: ID
-        {
-            // система навигации для автопилота
+        {            
             public event CarDelegateWithIntAndString EventFromDToE;
             public event CarDelegateWithInt EventFromDToB;
             private string userDestination = "";
@@ -239,7 +272,6 @@ namespace CourseWork
 
             public void lookForPowerStation()
             {
-                Random rnd = new Random();
                 Console.Write("D \tНачат поиск станции заправки");
 
                 LoadingImitator.printDots();
@@ -252,7 +284,6 @@ namespace CourseWork
 
             public void navigateToClientDestination()
             {
-                Random rnd = new Random();
                 Console.Write("D \tНачат поиск точки назначения \"{0}\"", userDestination);
 
                 LoadingImitator.printDots();
@@ -284,13 +315,12 @@ namespace CourseWork
         }
 
         public class E: IE
-        {
-            // система движения автомобиля
+        {            
             public event CarDelegateWithString EventFromEToD;
             private int currentEstimatedTime = 0;
             private string currentDestination = "";
 
-            public void setEstimatedTime(int estimatedTime, string destination)
+            public void setEstimatedTimeAndDestination(int estimatedTime, string destination)
             {
                 Console.WriteLine("D-E \tНазвание пунтка назначения и продолжительность поездки сохранены");
                 currentEstimatedTime = estimatedTime;
@@ -299,7 +329,6 @@ namespace CourseWork
 
             public void drive()
             {
-                Random rnd = new Random();
                 Console.WriteLine("E \tПоездка в пункт назначения \"{0}\" начата", currentDestination);
                 Console.Write("\tДо конца поездки осталось:");
                 for (int i = 0; i < currentEstimatedTime; i++)
@@ -313,8 +342,7 @@ namespace CourseWork
         }
 
         static void Main(string[] args)
-        {            
-            Random rnd = new Random();
+        {                        
             A passanger = new A();
             B payment = new B();
             C engine = new C();
@@ -335,12 +363,14 @@ namespace CourseWork
             destinations.Add("Пляж");
             destinations.Add("Школа английского языка");
             destinations.Add("Концертный зал");
-          
+           
+            // подписание методов классов на события классов
+
             // A
             passanger.EventFromAToC += payment.proxyFromAToC;
             passanger.EventFromAToD += navigation.setDestination;
             passanger.EventFromDToB += payment.setPrice;
-            passanger.EventFromDToE += rideController.setEstimatedTime;
+            passanger.EventFromDToE += rideController.setEstimatedTimeAndDestination;
             passanger.EventFromEToD += navigation.finishRide;
 
             // B
@@ -362,6 +392,7 @@ namespace CourseWork
 
             for (int i = 1; i <= quantityOfClients; i++)
             {
+                // incapsulate the below
                 int destinationIndex = rnd.Next(0, destinations.Count - 1); // в произвольном порядке выбираем индекс пункт назначения
                 string destination = destinations[destinationIndex];        // получаем сам пункт назначения
                 destinations.RemoveAt(destinationIndex);                    // удаляем данный пункт назначения из списка
