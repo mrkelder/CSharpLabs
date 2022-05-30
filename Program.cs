@@ -131,16 +131,51 @@ namespace CourseWork
             private const int MIN_PROCESS_AWAIT_CYCLES = 3; // минимальное количество итераций
             private const int MAX_PROCESS_AWAIT_CYCLES = 8; // максимальное количество итераций
         
-            public static void printDots()
+            public static void printDotsWithMessage(string message)
             {
-                // метод, выводящий точки, которые иммитируют какой-либо процесс
+                // метод, выводящий сообщение с точками, которые
+                // иммитируют какой-либо процесс (например, подсчет)
+                Console.Write(message);
                 for (int i = rnd.Next(MIN_PROCESS_AWAIT_CYCLES, MAX_PROCESS_AWAIT_CYCLES); i > 0; i--)
                 {
                     Thread.Sleep(500);
                     Console.Write(".");
                 }
+                Console.WriteLine();
             }
         }
+
+        // класс пунтков назначения
+        static public class Destinations {
+            // коллекция пунктов назначения
+            private static List<string> destinations = new List<string>(); 
+
+            // метод инициализации всех пунктов назначения
+            public static void initDestinations()
+            {
+                destinations.Clear();
+                destinations.Add("Торговый центр");
+                destinations.Add("Рынок");
+                destinations.Add("Обзерватория");
+                destinations.Add("Филормония");
+                destinations.Add("Университет");
+                destinations.Add("Кафе");
+                destinations.Add("Галлерея");
+                destinations.Add("Пляж");
+                destinations.Add("Школа английского языка");
+                destinations.Add("Концертный зал");
+            }
+
+            // метод получения произольного пунтка назначения
+            public static string getRandomDestination()
+            {
+                int destinationIndex = rnd.Next(0, destinations.Count - 1); // в произвольном порядке выбираем индекс пункта назначения
+                string destination = destinations[destinationIndex];        // получаем сам пункт назначения
+                destinations.RemoveAt(destinationIndex);                    // удаляем данный пункт назначения из списка (он уже посещен)
+                return destination;
+            }
+        }
+
 
         public class A : IA
         {            
@@ -162,7 +197,7 @@ namespace CourseWork
 
             public void engineIgnitionResponse()
             {
-                Console.WriteLine("\nC-A \tДвигатель запущен");
+                Console.WriteLine("C-A \tДвигатель запущен");
             }
 
             public void proxyFromDToB(int price)
@@ -190,8 +225,7 @@ namespace CourseWork
 
             public void setPrice(int totalPrice)
             {
-                Console.WriteLine("D-B \tПроисходит вычисление цены...");
-                Thread.Sleep(1500);
+                LoadingImitator.printDotsWithMessage("D-B \tПроисходит вычисление цены");
                 price = totalPrice;
             }
 
@@ -229,9 +263,7 @@ namespace CourseWork
             {
                 if(isIgnitionRequested)
                 {
-                    Console.Write("C \tДвигатель запускается");
-
-                    LoadingImitator.printDots();
+                    LoadingImitator.printDotsWithMessage("C \tДвигатель запускается");
 
                     isIgnitionRequested = false;
                     EventFromCToA();
@@ -262,6 +294,11 @@ namespace CourseWork
             private int priceToStation = 0;
             private int priceToDestination = 0;
 
+            // минимальное количество времени на поездку
+            private const int MIN_ESTIMATED_TIME = 2; 
+            // максимальное количество времени на поездку
+            private const int MAX_ESTIMATED_TIME = 5;
+            // цена за одну единицу времени
             private const int PRICE_PER_TIME = 15;
 
             public void setDestination(string destination)
@@ -272,29 +309,25 @@ namespace CourseWork
 
             public void lookForPowerStation()
             {
-                Console.Write("D \tНачат поиск станции заправки");
-
-                LoadingImitator.printDots();
-
-                int estimatedTime = rnd.Next(2, 5);
-                priceToStation = estimatedTime * PRICE_PER_TIME;
-                Console.WriteLine("\n\tЗаправочная станция найдена. Время до прибытия: {0}", estimatedTime);
-                EventFromDToE(estimatedTime, "Заправочная станция");
+                string processMessage = "D \tНачат поиск станции заправки";
+                lookForLocation(processMessage, "Заправочная станция");
             }
 
             public void navigateToClientDestination()
             {
-                Console.Write("D \tНачат поиск точки назначения \"{0}\"", userDestination);
+                string processMessage = "D \tНачат поиск точки назначения \"" + userDestination + "\"";
+                lookForLocation(processMessage, userDestination);
+            }    
+            
+            private void lookForLocation(string processMessage, string destination)
+            {
+                LoadingImitator.printDotsWithMessage(processMessage);
 
-                LoadingImitator.printDots();
-
-                Console.WriteLine();
-
-                int estimatedTime = rnd.Next(2, 5);
-                priceToDestination = estimatedTime * PRICE_PER_TIME;
-                Console.WriteLine("\tДвижение в пункт назначения \"{0}\" начато. Время: {1}", userDestination, estimatedTime);
-                EventFromDToE(estimatedTime, userDestination);
-            }          
+                int estimatedTime = rnd.Next(MIN_ESTIMATED_TIME, MAX_ESTIMATED_TIME);
+                priceToStation = estimatedTime * PRICE_PER_TIME;
+                Console.WriteLine("\tПункт назначения \"{0}\" найден. Время до прибытия: {1}", destination, estimatedTime);
+                EventFromDToE(estimatedTime, destination);
+            }
 
             public void resetNavigation()
             {
@@ -342,28 +375,17 @@ namespace CourseWork
         }
 
         static void Main(string[] args)
-        {                        
+        {
+            Destinations.initDestinations();
             A passanger = new A();
             B payment = new B();
             C engine = new C();
             D navigation = new D();
             E rideController = new E();
 
-            // incapsulate the below
-            int quantityOfClients = rnd.Next(1, 4);         // количество клиентков
-            List<string> destinations = new List<string>(); // коллекция пунктов назначения
-
-            destinations.Add("Торговый центр");
-            destinations.Add("Рынок");
-            destinations.Add("Обзерватория");
-            destinations.Add("Филормония");
-            destinations.Add("Университет");
-            destinations.Add("Кафе");
-            destinations.Add("Галлерея");
-            destinations.Add("Пляж");
-            destinations.Add("Школа английского языка");
-            destinations.Add("Концертный зал");
-           
+            // количество клиентков
+            int quantityOfClients = rnd.Next(1, 4);         
+ 
             // подписание методов классов на события классов
 
             // A
@@ -392,10 +414,7 @@ namespace CourseWork
 
             for (int i = 1; i <= quantityOfClients; i++)
             {
-                // incapsulate the below
-                int destinationIndex = rnd.Next(0, destinations.Count - 1); // в произвольном порядке выбираем индекс пункт назначения
-                string destination = destinations[destinationIndex];        // получаем сам пункт назначения
-                destinations.RemoveAt(destinationIndex);                    // удаляем данный пункт назначения из списка
+                string destination = Destinations.getRandomDestination();
 
                 Console.WriteLine("\nКлиент №{0}", i);
                 passanger.requestIgnition();                                // A запрашивает C запустить двигатель
